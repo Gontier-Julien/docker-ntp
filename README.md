@@ -1,26 +1,22 @@
 ## About this container
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/cturra/ntp.svg?logo=docker&label=pulls&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://hub.docker.com/r/cturra/ntp/)
-[![Docker Stars](https://img.shields.io/docker/stars/cturra/ntp.svg?logo=docker&label=stars&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://hub.docker.com/r/cturra/ntp/)
-[![GitHub Stars](https://img.shields.io/github/stars/cturra/docker-ntp.svg?logo=github&label=stars&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://github.com/cturra/docker-ntp)
-[![Apache licensed](https://img.shields.io/badge/license-Apache-blue.svg?logo=apache&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://raw.githubusercontent.com/cturra/docker-ntp/master/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/snowy68/ntp.svg?logo=docker&label=pulls&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://hub.docker.com/r/snowy68/ntp/)
+[![Docker Stars](https://img.shields.io/docker/stars/snowy68/ntp.svg?logo=docker&label=stars&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://hub.docker.com/r/snowy68/ntp/)
+[![GitHub Stars](https://img.shields.io/github/stars/gontier-julien/docker-ntp.svg?logo=github&label=stars&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://github.com/gontier-julien/docker-ntp)
+[![Apache licensed](https://img.shields.io/badge/license-Apache-blue.svg?logo=apache&style=for-the-badge&color=0099ff&logoColor=ffffff)](https://raw.githubusercontent.com/gontier-julien/docker-ntp/master/LICENSE)
 
 This container runs [chrony](https://chrony.tuxfamily.org/) on [Alpine Linux](https://alpinelinux.org/).
+>This container is a fork of [cturra docker-ntp](https://github.com/cturra/docker-ntp), but that allow you to configure chrony with a config file and rtcsync.
 
 [chrony](https://chrony.tuxfamily.org) is a versatile implementation of the Network Time Protocol (NTP). It can synchronise the system clock with NTP servers, reference clocks (e.g. GPS receiver), and manual input using wristwatch and keyboard. It can also operate as an NTPv4 (RFC 5905) server and peer to provide a time service to other computers in the network.
 
 
 ## Supported Architectures
 
-Architectures officially supported by this Docker container. Simply pulling this container from [Docker Hub](https://hub.docker.com/r/cturra/ntp) should retrieve the correct image for your architecture.
+Architectures officially supported by this Docker container. Simply pulling this container from [Docker Hub](https://hub.docker.com/r/snowy68/ntp) should retrieve the correct image for your architecture.
 
 ![Linux x86-64](https://img.shields.io/badge/linux/amd64-green?style=flat-square)
-![ARMv8 64-bit](https://img.shields.io/badge/linux/arm64-green?style=flat-square)
-![IBM POWER8](https://img.shields.io/badge/linux/ppc64le-green?style=flat-square)
-![IBM Z Systems](https://img.shields.io/badge/linux/s390x-green?style=flat-square)
-![Linux x86/i686](https://img.shields.io/badge/linux/386-green?style=flat-squareg)
-![ARMv7 32-bit](https://img.shields.io/badge/linux/arm/v7-green?style=flat-square)
-![ARMv6 32-bit](https://img.shields.io/badge/linux/arm/v6-green?style=flat-square)
+![ARMv8 64-bit](https://img.shields.io/badge/linux/arm64-red?style=flat-square)
 
 
 ## How to Run this container
@@ -31,25 +27,27 @@ Pull and run -- it's this simple.
 
 ```
 # pull from docker hub
-$> docker pull cturra/ntp
+$> docker pull snowy68/ntp
 
 # run ntp
 $> docker run --name=ntp            \
               --restart=always      \
               --detach              \
               --publish=123:123/udp \
-              cturra/ntp
+              --cap-add=SYS_TIME    \
+              snowy68/ntp
 
 # OR run ntp with higher security
 $> docker run --name=ntp                           \
               --restart=always                     \
               --detach                             \
               --publish=123:123/udp                \
+              --cap-add=SYS_TIME                   \
               --read-only                          \
               --tmpfs=/etc/chrony:rw,mode=1750     \
               --tmpfs=/run/chrony:rw,mode=1750     \
               --tmpfs=/var/lib/chrony:rw,mode=1750 \
-              cturra/ntp
+              snowy68/ntp
 ```
 
 
@@ -66,23 +64,6 @@ $> docker compose up -d ntp
 $> docker compose logs ntp
 ```
 
-
-### With Docker Swarm
-
-*(These instructions assume you already have a swarm)*
-
-```
-# deploy ntp stack to the swarm
-$> docker stack deploy -c docker-compose.yml cturra
-
-# check that service is running
-$> docker stack services cturra
-
-# (optional) view the ntp logs
-$> docker service logs -f cturra_ntp
-```
-
-
 ### From a Local command line
 
 Using the vars file in this git repo, you can update any of the variables to reflect your
@@ -97,44 +78,16 @@ $> ./run.sh
 ```
 
 
-## Configure NTP Servers
+## Info on NTP Servers
 
-By default, this container uses CloudFlare's time server (time.cloudflare.com). If you'd
-like to use one or more different NTP server(s), you can pass this container an `NTP_SERVERS`
-environment variable. This can be done by updating the [vars](vars), [docker-compose.yml](docker-compose.yml)
-files or manually passing `--env=NTP_SERVERS="..."` to `docker run`.
-
-Below are some examples of how to configure common NTP Servers.
-
-Do note, to configure more than one server, you must use a comma delimited list WITHOUT spaces.
-
-```
-# (default) cloudflare
-NTP_SERVERS="time.cloudflare.com"
-
-# google
-NTP_SERVERS="time1.google.com,time2.google.com,time3.google.com,time4.google.com"
-
-# alibaba
-NTP_SERVERS="ntp1.aliyun.com,ntp2.aliyun.com,ntp3.aliyun.com,ntp4.aliyun.com"
-
-# local (offline)
-NTP_SERVERS="127.127.1.1"
-```
-
-If you're interested in a public list of stratum 1 servers, you can have a look at the following list.
-Do make sure to verify the ntp server is active as this list does appaer to have some no longer active
-servers.
-
- * https://www.advtimesync.com/docs/manual/stratum1.html
-
+By default, this container uses CloudFlare's (time.cloudflare.com), SIDN Labs (ntppool1.time.nl,ntppool2.time.nl) and Netnod (nts.netnod.se).
+They all use NTS by default for security. And i highly encourage to use NTS NTP servers when possible.
 
 ## Chronyd Options
 
 ### No Client Log (noclientlog)
 
-This is optional and not enabled by default. If you provide the `NOCLIENTLOG=true` envivonrment variable,
-chrony will be configured to:
+This is optional and not enabled by default. If you remove the hash sign (`#`) before the `noclientlog` option, in the chrony.conf fill then it will be configured to:
 
 > Specifies that client accesses are not to be logged. Normally they are logged, allowing statistics to
 > be reported using the clients command in chronyc. This option also effectively disables server support
@@ -158,7 +111,7 @@ Feel free to check out the project documentation for more information at:
 
 By default the UTC timezone is used, however if you'd like to adjust your NTP server to be running in your
 local timezone, all you need to do is provide a `TZ` environment variable following the standard TZ data format.
-As an example, using `docker-compose.yaml`, that would look like this if you were located in Vancouver, Canada:
+As an example, using `docker-compose.yaml`, that would be look like this if you were located in Vancouver, Canada:
 
 ```yaml
   ...
@@ -166,26 +119,6 @@ As an example, using `docker-compose.yaml`, that would look like this if you wer
     - TZ=America/Vancouver
     ...
 ```
-
-
-## Enable Network Time Security
-
-If **all** the `NTP_SERVERS` you have configured support NTS (Network Time Security) you can pass the `ENABLE_NTS=true`
-option to the container to enable it. As an example, using `docker-compose.yaml`, that would look like this:
-
-```yaml
-  ...
-  environment:
-    - NTP_SERVER=time.cloudflare.com
-    - ENABLE_NTS=true
-    ...
-```
-
-If any of the `NTP_SERVERS` you have configured does not support NTS, you will see a message like the
-following during startup:
-
-> NTS-KE session with 164.67.62.194:4460 (tick.ucla.edu) timed out
-
 
 ## Testing your NTP Container
 
@@ -267,12 +200,6 @@ $ docker logs -f ntps
 2021-05-25T18:42:47Z Could not step system clock
 ```
 
-Good question! Since `chronyd` is running with the `-x` flag, it will not try to control
-the system (container host) clock. This of course is necessary because the process does not
-have priviledge (for good reason) to modify the clock on the system.
-
-Like any host on your network, simply use your preferred ntp client to pull the time from
-the running ntp container on your container host.
-
 ---
+Buy the original creator of this project a Coffee!
 <a href="https://www.buymeacoffee.com/cturra" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>

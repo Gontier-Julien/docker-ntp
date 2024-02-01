@@ -2,15 +2,14 @@ version: '3.9'
 
 services:
   ntp:
-    build: .
-    image: cturra/ntp:latest
+    image: snowy68/ntp:latest
     container_name: ntp
-    restart: always
+    restart: unless-stopped
+    cap_add:
+      - SYS_TIME
     ports:
       - 123:123/udp
-    environment:
-      - NTP_SERVERS=time.cloudflare.com
-      - LOG_LEVEL=0
+    volumes:
+      - ./chrony.conf:/etc/chrony/chrony.conf:ro
+#    environment:
 #      - TZ=America/Vancouver
-#      - NOCLIENTLOG=true
-#      - ENABLE_NTS=true
